@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A2 Key Practice Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+<style>
+html,body{margin:0;height:auto}
+body{background:var(--ground)}
+.hub{max-width:980px;margin:0 auto;padding-block:28px 48px;padding-inline:16px}
+.hero{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
+.hero h1{font-size:clamp(1.5rem,3.5vw,2.1rem);line-height:1.15}
+.hero p{margin:6px 0 0;color:var(--muted)}
+.search{flex:0 1 300px;min-width:0}
+.search input{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+details.mod{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:14px}
+details.mod>summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+details.mod>summary::-webkit-details-marker{display:none}
+details.mod>summary h2{font-size:1.15rem}
+details.mod>summary .count{color:var(--muted);font-size:.9rem}
+details.mod>summary .chev{transition:transform .15s;color:var(--accent);font-weight:700}
+details.mod[open]>summary .chev{transform:rotate(90deg)}
+.units{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:0 18px 18px}
+.unit{border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--surface-2);display:flex;flex-direction:column;gap:8px}
+.unit .wk{font-family:Lexend,sans-serif;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.unit h3{font-size:1.05rem}
+.unit .info{font-size:.85rem;color:var(--muted)}
+.unit .wordchips{margin-top:0}
+.unit .go{margin-top:auto;align-self:flex-start;text-decoration:none}
+.empty{color:var(--muted);padding:12px 18px 18px}
+.foot{margin-top:28px;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<main class="hub">
+  <header class="hero">
+    <div>
+      <div class="partlabel" id="sub"></div>
+      <h1 id="title">Practice Tests</h1>
+      <p>Choose a week, type your name, and do the test on any phone, tablet or computer. 選擇單元，輸入名字後開始測驗。</p>
+    </div>
+    <label class="search" for="q"><span class="partlabel">Find a test</span><input id="q" type="search" placeholder="Search a theme or word, e.g. majestic"></label>
+  </header>
+  <div id="mods"></div>
+  <p class="foot">Your reading score is sent to your teacher when you finish. Writing (Parts 6–7) is marked by your teacher.</p>
+</main>
+<script src="units/catalog.js"></script>
+<script>
+(function () {
+  var C = window.CATALOG || { modules: [] };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  document.getElementById('title').textContent = C.title || 'Practice Tests';
+  document.getElementById('sub').textContent = C.subtitle || '';
+  var open = {};
+  try { open = JSON.parse(localStorage.getItem('hub-open') || '{}'); } catch (e) {}
+  function render(q) {
+    q = (q || '').trim().toLowerCase();
+    var html = C.modules.map(function (m, i) {
+      var units = m.units.filter(function (u) {
+        if (!q) return true;
+        return (u.theme + ' ' + u.week + ' ' + m.title + ' ' + (u.words || []).join(' ')).toLowerCase().indexOf(q) >= 0;
+      });
+      if (q && !units.length) return '';
+      var isOpen = q || open[m.id] !== false;
+      return '<details class="mod" data-id="' + esc(m.id) + '"' + (isOpen ? ' open' : '') + '><summary><h2>' + esc(m.title) + '</h2><span class="count">' + units.length + ' test' + (units.length === 1 ? '' : 's') + ' <span class="chev">›</span></span></summary>' +
+        (units.length ? '<div class="units">' + units.map(function (u) {
+          return '<article class="unit"><div class="wk">' + esc(u.week) + '</div><h3>' + esc(u.theme) + '</h3><div class="info">' + esc(u.parts || '') + '</div>' +
+            '<div class="wordchips">' + (u.words || []).map(function (w) { return '<span>' + esc(w) + '</span>'; }).join('') + '</div>' +
+            '<a class="primary go" href="test.html?u=' + encodeURIComponent(u.id) + '">Start test</a></article>';
+        }).join('') + '</div>' : '<p class="empty">Tests coming soon.</p>') + '</details>';
+    }).join('');
+    document.getElementById('mods').innerHTML = html || '<p class="empty">No test matches that search.</p>';
+    Array.prototype.forEach.call(document.querySelectorAll('details.mod'), function (d) {
+      d.addEventListener('toggle', function () { if (q) return; open[d.dataset.id] = d.open; try { localStorage.setItem('hub-open', JSON.stringify(open)); } catch (e) {} });
+    });
+  }
+  document.getElementById('q').addEventListener('input', function (e) { render(e.target.value); });
+  render('');
+})();
+</script>
+</body>
+</html>

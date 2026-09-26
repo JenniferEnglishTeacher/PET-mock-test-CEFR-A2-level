@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mock Test · A2 Key Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+<style>html,body{margin:0}</style>
+</head>
+<body>
+<div class="app" id="app"><div class="screen"><div class="card"><p>Loading test…</p></div></div></div>
+<script src="assets/config.js"></script>
+<script>
+(function () {
+  var id = new URLSearchParams(location.search).get('u') || '';
+  var app = document.getElementById('app');
+  function fail(msg) {
+    app.innerHTML = '<div class="screen"><div class="card"><h1>Test not found</h1><p>' + msg + '</p><p><a class="back" href="index.html">← Back to all tests</a></p></div></div>';
+  }
+  if (!/^[a-z0-9-]+$/.test(id)) { fail('No test was chosen.'); return; }
+  function load(src, done) {
+    var s = document.createElement('script');
+    s.src = src; s.onload = done; s.onerror = function () { fail('The file ' + src + ' could not be loaded.'); };
+    document.body.appendChild(s);
+  }
+  load('units/' + id + '.js', function () {
+    if (!window.TEST) { fail('This test has no data.'); return; }
+    document.title = window.TEST.unitName + ' · A2 Key Practice';
+    load('assets/engine.js');
+  });
+})();
+</script>
+</body>
+</html>
